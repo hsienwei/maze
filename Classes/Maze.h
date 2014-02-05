@@ -30,6 +30,8 @@ public:
 	int _height;
 	unsigned char *_data;
 	Grid _start, _end;
+
+	unsigned char value(int x, int y);
 };
 
 

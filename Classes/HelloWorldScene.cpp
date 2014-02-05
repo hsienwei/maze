@@ -1,6 +1,8 @@
 #include "HelloWorldScene.h"
 
 #include "Maze.h"
+#include "ZSortObject.h"
+
 
 USING_NS_CC;
 
@@ -82,6 +84,25 @@ bool HelloWorld::init()
 	Maze *maze2 = MazeFactory::transformMaze(maze, EXTENDED);
 
 	MazeFactory::printMaze(maze2);
+
+
+	for (int j = 0; j < maze2->_height; ++j)
+	{
+		for (int i = 0; i < maze2->_width; ++i)
+		{
+			unsigned char v = maze2->value(i, j);
+			if (v == 1)
+			{
+				GameSprite *gSprite = GameSprite::create();
+				gSprite->initWithFile("Floor_00.png");
+				gSprite->setPosition(ccpAdd( Map::instance()->getMapPosition(i, j), ccp(400, 400)));
+				this->addChild(gSprite);
+				gSprite->setGridIndex(ccg(0, 0));
+				Map::instance()->addToZSortArray(gSprite);
+			}
+		}
+	}
+	
 
 	delete maze;
 	delete maze2;

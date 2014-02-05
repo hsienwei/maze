@@ -132,6 +132,12 @@ void removeWall(unsigned char *data, Grid self, Grid neighbour, int w, int h)
 	}
 }
 
+
+unsigned char Maze::value(int x, int y)
+{
+	return getValue(_data, _width, _height, x, y);
+}
+
 Maze* MazeFactory::mazeCreate(int width, int height, MazeCreateAlgorithm algorithm)
 {
 	srand(time(NULL));

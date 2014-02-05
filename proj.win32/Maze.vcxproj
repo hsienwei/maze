@@ -139,12 +139,14 @@ xcopy /Y /Q "$(EngineRoot)external\websockets\prebuilt\win32\*.*" "$(OutDir)"</C
     <ClCompile Include="..\Classes\HelloWorldScene.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="..\Classes\Maze.cpp" />
+    <ClCompile Include="..\Classes\ZSortObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h" />
     <ClInclude Include="..\Classes\HelloWorldScene.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="..\Classes\Maze.h" />
+    <ClInclude Include="..\Classes\ZSortObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\cocos\2d\cocos2d.vcxproj">
