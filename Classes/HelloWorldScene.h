@@ -2,6 +2,9 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
+#include "Maze.h"
+
+USING_NS_CC;
 
 class HelloWorld : public cocos2d::Layer
 {
@@ -17,6 +20,10 @@ public:
     
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
+
+	void focusOnGrid(Grid &grid);
+
+	bool touchBegan(Touch *touch, Event *unused_event);
 };
 
 #endif // __HELLOWORLD_SCENE_H__

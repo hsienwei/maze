@@ -4,7 +4,11 @@
 #include "ZSortObject.h"
 
 
-USING_NS_CC;
+
+
+Maze *maze2 = NULL;
+Layer *mapTileLayer = NULL;
+Grid currentGrid;
 
 Scene* HelloWorld::createScene()
 {
@@ -31,60 +35,16 @@ bool HelloWorld::init()
         return false;
     }
     
-    Size visibleSize = Director::getInstance()->getVisibleSize();
-    Point origin = Director::getInstance()->getVisibleOrigin();
-
-    /////////////////////////////
-    // 2. add a menu item with "X" image, which is clicked to quit the program
-    //    you may modify it.
-
-    // add a "close" icon to exit the progress. it's an autorelease object
-    auto closeItem = MenuItemImage::create(
-                                           "CloseNormal.png",
-                                           "CloseSelected.png",
-                                           CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
-    
-	closeItem->setPosition(Point(origin.x + visibleSize.width - closeItem->getContentSize().width/2 ,
-                                origin.y + closeItem->getContentSize().height/2));
-
-    // create menu, it's an autorelease object
-    auto menu = Menu::create(closeItem, NULL);
-    menu->setPosition(Point::ZERO);
-    this->addChild(menu, 1);
-
-    /////////////////////////////
-    // 3. add your codes below...
-
-    // add a label shows "Hello World"
-    // create and initialize a label
-    
-    auto label = LabelTTF::create("Hello World", "Arial", 24);
-    
-    // position the label on the center of the screen
-    label->setPosition(Point(origin.x + visibleSize.width/2,
-                            origin.y + visibleSize.height - label->getContentSize().height));
-
-    // add the label as a child to this layer
-    this->addChild(label, 1);
-
-    // add "HelloWorld" splash screen"
-    auto sprite = Sprite::create("HelloWorld.png");
-
-    // position the sprite on the center of the screen
-    sprite->setPosition(Point(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-
-    // add the sprite as a child to this layer
-    this->addChild(sprite, 0);
-
-
 	Maze *maze = MazeFactory::mazeCreate(20	, 20, RECURSIVE_BACKTRACKER);
 
 	MazeFactory::printMaze(maze);
 
-	Maze *maze2 = MazeFactory::transformMaze(maze, EXTENDED);
+	maze2 = MazeFactory::transformMaze(maze, EXTENDED);
 
 	MazeFactory::printMaze(maze2);
 
+	mapTileLayer = Layer::create();
+	this->addChild(mapTileLayer);
 
 	for (int j = 0; j < maze2->_height; ++j)
 	{
@@ -95,17 +55,36 @@ bool HelloWorld::init()
 			{
 				GameSprite *gSprite = GameSprite::create();
 				gSprite->initWithFile("Floor_00.png");
-				gSprite->setPosition(ccpAdd( Map::instance()->getMapPosition(i, j), ccp(400, 400)));
-				this->addChild(gSprite);
-				gSprite->setGridIndex(ccg(0, 0));
+				gSprite->setPosition( Map::instance()->getMapPosition(i, j));
+				mapTileLayer->addChild(gSprite);
+				gSprite->setGridIndex(ccg(i, j));
 				Map::instance()->addToZSortArray(gSprite);
+
+				if (i == maze2->_start.x && j == maze2->_start.y)
+					gSprite->setColor(Color3B::RED);
+				if (i == maze2->_end.x && j == maze2->_end.y)
+					gSprite->setColor(Color3B::GREEN);
 			}
 		}
 	}
+	currentGrid.x = maze2->_start.x;
+	currentGrid.y = maze2->_start.y;
+	focusOnGrid(maze2->_start);
+
 	
+	
+	// Register Touch Event
+	auto listener = EventListenerTouchOneByOne::create();
+	listener->setSwallowTouches(true);
+
+	listener->onTouchBegan = CC_CALLBACK_2(HelloWorld::touchBegan, this);
+	//listener->onTouchMoved = CC_CALLBACK_2(HelloWorld::onTouchEnded, this);
+	//listener->onTouchEnded = CC_CALLBACK_2(HelloWorld::touchBegan, this);
+
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
 	delete maze;
-	delete maze2;
+
     return true;
 }
 
@@ -117,4 +96,47 @@ void HelloWorld::menuCloseCallback(Object* pSender)
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     exit(0);
 #endif
+}
+
+
+void HelloWorld::focusOnGrid(Grid &grid)
+{
+	//focus on start
+	Point focusPos = Map::instance()->getMapPosition(grid.x, grid.y);
+	Size winSize = CCDirector::sharedDirector()->getWinSize();
+	mapTileLayer->setPosition(ccp(winSize.width / 2 - focusPos.x, winSize.height / 2 - focusPos.y));
+}
+
+bool HelloWorld::touchBegan(Touch *touch, Event *unused_event)
+{
+	Size winSize = CCDirector::sharedDirector()->getWinSize();
+	Point midPos = Point(winSize.width / 2, winSize.height / 2);
+	Point touchPos = this->convertTouchToNodeSpace(touch);
+	Point subPos = touchPos - midPos;
+	Grid grid;
+	if (subPos.x < 0 && subPos.y < 0)
+	{
+		grid.x = 0;    grid.y = 1; //down
+	}
+	else if (subPos.x > 0 && subPos.y < 0)
+	{
+		grid.x = 1;    grid.y = 0; //right
+	}
+	else if (subPos.x < 0 && subPos.y > 0)
+	{
+		grid.x = -1;    grid.y = 0;//left
+	}
+	else if (subPos.x > 0 && subPos.y > 0)
+	{
+		grid.x = 0;    grid.y = -1;//up
+	}
+
+	unsigned char v = maze2->value(currentGrid.x + grid.x, currentGrid.y + grid.y);
+	if (v == 1)
+	{
+		currentGrid.x = currentGrid.x + grid.x;
+		currentGrid.y = currentGrid.y + grid.y;
+		focusOnGrid(currentGrid);
+	}
+	return true;
 }
